@@ -1,5 +1,9 @@
 import numpy as np
 import pygame
+import yaml
+
+with open("config.yaml") as f:
+    data = yaml.safe_load(f)
 
 pygame.init()
 

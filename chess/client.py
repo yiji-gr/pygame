@@ -1,3 +1,8 @@
+import socket
+import threading
+
+import pygame.time
+
 from cfg import *
 from object import *
 
@@ -129,20 +134,15 @@ def handle_event1():
                 exit()
 
 
-def handle_event2():
-    global cur_real_pos, clicked_piece, game_over
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            exit()
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                exit()
+def handle_message():
+    global cur_real_pos, clicked_piece, game_over, message
+    try:
+        x, y, t = message.split(",")
+        cur_real_pos = (int(x), int(y))
+        cur_piece_ = is_piece(cur_real_pos)
 
-        if event.type == pygame.MOUSEMOTION:
-            cur_real_pos = pygame.mouse.get_pos()
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            cur_real_pos = pygame.mouse.get_pos()
-            cur_piece_ = is_piece(cur_real_pos)
+        # 点击棋子
+        if t == "down":
             # 已经选中棋子
             if clicked_piece:
                 # 重复点击同一个棋子，取消点击
@@ -161,36 +161,81 @@ def handle_event2():
             else:
                 clicked_piece = cur_piece_
 
+        message = ""
+    except ValueError as ex:
+        print(f"ex: {ex}")
 
-if __name__ == '__main__':
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("中国象棋")
-    board = get_board()
-    font = pygame.font.SysFont("microsoftyahei", FONT_SIZE)
-    clock = pygame.time.Clock()
-    pre_real_pos = (-1, -1)     # 上一次鼠标点击或者移动的位置
-    cur_real_pos = (-1, -1)     # 当前鼠标点击或者移动的位置，鼠标不移动时不会触发鼠标事件，所以需要记录当前鼠标位置
-    clicked_piece: Optional[None | PIECE] = None        # 点击的棋子
-    game_over = False
+
+def handle_event2():
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            exit()
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                exit()
+
+        # 鼠标移动到棋子时，突出棋子
+        if event.type == pygame.MOUSEMOTION:
+            x, y = pygame.mouse.get_pos()
+            client_socket.sendall(f"{x},{y},move".encode())
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            x, y = pygame.mouse.get_pos()
+            client_socket.sendall(f"{x},{y},down".encode())
+
+
+def receive_message(sock: socket.socket):
     while True:
-        screen.fill(BG_COLOR)
-        draw_boards()
-        draw_pieces()
+        msg = sock.recv(1024)
+        if msg:
+            global message
+            message = msg.decode()
+            handle_message()
 
-        if game_over:
-            show_game_over()
-            handle_event1()
-        else:
-            if clicked_piece:
-                show_hint()
 
-            handle_event2()
-            pre_real_pos = cur_real_pos
+# TODO: 双方显示不同的界面，红色方红在下，黑色方黑在下
+# TODO: 棋子选中效果不一样
+# TODO: 当前选中棋子的候选位置对方不显示
+# TODO: 双人对战单人演示代码合并
+if __name__ == '__main__':
+    client_socket = socket.socket()
+    client_socket.connect((data["HOST"], data["PORT"]))
 
-            # 鼠标停留在棋子上时，突出棋子
-            cur_piece = is_piece(pre_real_pos)
-            if cur_piece:
-                pygame.draw.circle(screen, FORCE_COLOR, cur_piece.real_pos, FONT_SIZE // 3 * 2, 1)
+    receive_thread = threading.Thread(
+        target=receive_message,
+        args=(client_socket, ),
+        daemon=True,
+    )
+    receive_thread.start()
+    message: str = ""
+    while True:
+        screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        pygame.display.set_caption("中国象棋")
+        board = get_board()
+        font = pygame.font.SysFont("microsoftyahei", FONT_SIZE)
+        clock = pygame.time.Clock()
+        pre_real_pos = (-1, -1)     # 上一次鼠标点击或者移动的位置
+        cur_real_pos = (-1, -1)     # 当前鼠标点击或者移动的位置，鼠标不移动时不会触发鼠标事件，所以需要记录当前鼠标位置
+        clicked_piece: Optional[None | PIECE] = None        # 点击的棋子
+        game_over = False
+        while True:
+            screen.fill(BG_COLOR)
+            draw_boards()
+            draw_pieces()
 
-        pygame.display.update()
-        clock.tick(60)
+            if game_over:
+                show_game_over()
+                handle_event1()
+            else:
+                if clicked_piece:
+                    show_hint()
+
+                handle_event2()
+                pre_real_pos = cur_real_pos
+
+                # 鼠标停留在棋子上时，突出棋子
+                cur_piece = is_piece(pre_real_pos)
+                if cur_piece:
+                    pygame.draw.circle(screen, FORCE_COLOR, cur_piece.real_pos, FONT_SIZE // 3 * 2, 1)
+
+            pygame.display.update()
+            clock.tick(60)

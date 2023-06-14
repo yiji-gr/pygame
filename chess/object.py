@@ -92,7 +92,7 @@ class MA(PIECE):
             ]
         }
         for key, values in nx_pos.items():
-            if board[key[0]][key[1]]:
+            if 0 <= key[0] <= 8 and 0 <= key[1] <= 9 and board[key[0]][key[1]]:
                 continue
             for nx, ny in values:
                 if nx < 0 or ny < 0 or nx > 8 or ny > 9:
