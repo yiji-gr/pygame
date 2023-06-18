@@ -1,6 +1,5 @@
 import numpy as np
 import pygame
-import yaml
 
 from game_base import Game
 from plane.enemy import EnemySprite
@@ -20,9 +19,6 @@ class GamePlane(Game):
         self.tip_surface.fill(np.random.randint(200, 255, 3))
 
     def _read_cfg(self):
-        with open(self.config_path) as f:
-            self.config = yaml.safe_load(f)
-
         self.width = self.config["WIDTH"]
         self.height = self.config["HEIGHT"]
         self.tip_width = self.config["TIP_WIDTH"]

@@ -6,6 +6,7 @@ import pygame
 from game_2048 import Game2048
 from game_maze import GameMaze
 from game_plane import GamePlane
+from game_chess import GameChess
 from utils import exit_program
 
 pygame.init()
@@ -26,7 +27,7 @@ games = {
     "迷宫游戏": [GameMaze("config/game_maze.yaml"), ],
     "2048": [Game2048("config/game_2048.yaml"), ],
     "飞机大战": [GamePlane("config/game_plane.yaml"), ],
-    "中国象棋": [None, ],
+    "中国象棋": [GameChess("config/game_chess.yaml"), ],
 }
 
 for i, (name, game) in enumerate(games.items()):
@@ -36,6 +37,7 @@ for i, (name, game) in enumerate(games.items()):
 
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("几个小游戏")
 while True:
     screen.fill(BG_COLOR)
 

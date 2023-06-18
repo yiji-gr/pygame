@@ -3,8 +3,9 @@ import sys
 import pygame
 
 
-RED_BG_COLOR = (255, 0, 0)
-WHITE_BG_COLOR = (255, 255, 255)
+RED = (255, 0, 0)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 
 
 def exit_program():
@@ -30,10 +31,13 @@ def get_font_adaptive(
     width_lim: int,
     height_lim: int,
     font_name="timesnewroman",
-    font_size=100
-) -> pygame.font.FontType:
+    font_size=100,
+    ret_font_size=False,
+):
     font = get_font(font_name=font_name, font_size=font_size)
     while font.size(content)[0] > width_lim or font.size(content)[1] > height_lim:
         font_size -= 5
         font = get_font(font_name=font_name, font_size=font_size)
+    if ret_font_size:
+        return font, font_size
     return font

@@ -3,7 +3,6 @@ import random
 
 import numpy as np
 import pygame
-import yaml
 
 from game_base import Game
 from utils import get_font_adaptive
@@ -33,9 +32,6 @@ class Game2048(Game):
         self.screen = pygame.display.set_mode((self.width, self.height))
 
     def _read_cfg(self):
-        with open(self.config_path) as f:
-            self.config = yaml.safe_load(f)
-
         self.row_num = self.config["ROW_NUM"]
         self.col_num = self.config["COL_NUM"]
 

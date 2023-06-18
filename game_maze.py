@@ -5,39 +5,27 @@ import time
 
 import numpy as np
 import pygame
-import yaml
 
 from game_base import Game
 from maze.ball import BallSprite
-from utils import get_font_adaptive, WHITE_BG_COLOR
+from utils import get_font_adaptive, WHITE
 
 os.environ["SDL_VIDEO_CENTERED"] = '1'
 
 
 class GameMaze(Game):
     def __init__(self, config_path: str):
-        # self.end_point: tuple[int, int] = (-1, -1)
-        # self.start_point: tuple[int, int] = (-1, -1)
-        # self.margin_size: int = -1
-        # self.block_size: int = -1
-        # self.row_num: int = -1
-        # self.col_num: int = -1
-        # self.width: int = -1
-        # self.height: int = -1
-        # self.config: dict = {}
-
         super(GameMaze, self).__init__(config_path)
 
         self.screen = pygame.display.set_mode((self.width, self.height))
+        pygame.display.set_caption("迷宫游戏")
+
         self.show_text = True
         self.mouse_pos = (-1, -1)
         self.font_size_mapping = {}
         self.init_contents = [f"正在生成迷宫，请稍等{'.' * i}" + '' * (2 - i) for i in range(4)]
 
     def _read_cfg(self):
-        with open(self.config_path) as f:
-            self.config = yaml.safe_load(f)
-
         self.row_num = self.config["ROW_NUM"]
         self.col_num = self.config["COL_NUM"]
 
@@ -76,7 +64,7 @@ class GameMaze(Game):
         while self.in_game:
             idx += 1
             self.__handle_base_event()
-            self.screen.fill(WHITE_BG_COLOR)
+            self.screen.fill(WHITE)
 
             if not self.maze:
                 content = self.init_contents[idx % len(self.init_contents)]
@@ -100,7 +88,7 @@ class GameMaze(Game):
 
                 while self.in_game:
                     self.mouse_pos = (-1, -1)
-                    self.screen.fill(WHITE_BG_COLOR)
+                    self.screen.fill(WHITE)
                     self.__handle_event()
                     ball_group.update(pygame.key.get_pressed(), self.mouse_pos)
 
