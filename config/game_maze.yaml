@@ -1,0 +1,9 @@
+ROW_NUM: 50
+COL_NUM: 95
+BLOCK_SIZE: 15
+MARGIN_SIZE: 1
+BALL_IMG_PATH: "resource/maze/ball.jfif"
+COLLIDE_SOUND_PATH: "resource/maze/collide.wav"
+WALK_SOUND_PATH: "resource/maze/walk.wav"
+SUCCESS_SOUND_PATH: "resource/maze/success.wav"
+BLOCK_RATIO: 0.5

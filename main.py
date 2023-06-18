@@ -4,6 +4,7 @@ import numpy as np
 import pygame
 
 from game_2048 import Game2048
+from game_maze import GameMaze
 from utils import exit_program
 
 pygame.init()
@@ -21,8 +22,8 @@ FONT_SIZE = 50
 font = pygame.font.SysFont("microsoftyahei", FONT_SIZE)
 
 games = {
-    "迷宫游戏": [None, ],
-    "2048": [Game2048(), ],
+    "迷宫游戏": [GameMaze("config/game_maze.yaml"), ],
+    "2048": [Game2048("config/game_2048.yaml"), ],
     "飞机大战": [None, ],
     "中国象棋": [None, ],
 }
@@ -55,10 +56,12 @@ while True:
                     screen.blit(text, rect)
         elif event.type == pygame.MOUSEBUTTONDOWN:
             for i, (name, (game, (_, rect))) in enumerate(games.items()):
+                if not game:
+                    continue
                 if rect.collidepoint(pygame.mouse.get_pos()):
                     screen = pygame.display.set_mode((game.width, game.height))
                     screen.get_rect()
-                    game.run()
+                    game.start()
                     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
     pygame.display.flip()

@@ -5,24 +5,10 @@ import numpy as np
 import pygame
 import yaml
 
+from game import Game
 from utils import get_font_adaptive
 
 os.environ["SDL_VIDEO_CENTERED"] = '1'
-
-with open("game_2048.yaml") as f:
-    data = yaml.safe_load(f)
-
-ROW = data["ROW"]
-COL = data["COL"]
-MARGIN_SIZE = data["MARGIN_SIZE"]
-BLOCK_SIZE = data["BLOCK_SIZE"]
-TEXT_AREA_SIZE = data["TEXT_AREA_SIZE"]
-
-HEIGHT = ROW * BLOCK_SIZE + (ROW + 1) * MARGIN_SIZE
-BLOCK_WIDTH = COL * BLOCK_SIZE + (COL + 1) * MARGIN_SIZE
-WIDTH = BLOCK_WIDTH + TEXT_AREA_SIZE
-
-CANDIDATE_NUMS = data["CANDIDATE_NUMS"]
 
 NUM_COLOR_MAPPING = {
     2 ** num: np.random.randint(0, 200, 3)
@@ -41,20 +27,40 @@ DIRECTION_MAPPING = {
 }
 
 
-class Game2048:
-    def __init__(self):
-        self.width = WIDTH
-        self.height = HEIGHT
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
+class Game2048(Game):
+    def __init__(self, config_path):
+        super(Game2048, self).__init__(config_path)
+        self.screen = pygame.display.set_mode((self.width, self.height))
+
+    def _read_cfg(self):
+        with open(self.config_path) as f:
+            self.config = yaml.safe_load(f)
+
+        self.row_num = self.config["ROW_NUM"]
+        self.col_num = self.config["COL_NUM"]
+
+        self.block_size = self.config["BLOCK_SIZE"]
+        self.margin_size = self.config["MARGIN_SIZE"]
+        self.text_area_size = self.config["TEXT_AREA_SIZE"]
+
+        self.height = self.block_size * self.row_num + self.margin_size * (self.row_num + 1)
+        self.block_width = self.block_size * self.col_num + self.margin_size * (self.col_num + 1)
+        self.width = self.text_area_size + self.block_width
 
     def _init_state(self):
         self.score = 0
-        self.nums = [[0 for _ in range(COL)] for _ in range(ROW)]
+        self.game_over = False
+        self.in_game = True
+        self.nums = [[0 for _ in range(self.col_num)] for _ in range(self.row_num)]
         self.block_color = (np.random.randint(200, 256, 3))
         self.bg_color = np.random.randint(100, 256, 3)
         self.score_color = np.random.randint(0, 100, 3)
         self.text_color = np.random.randint(0, 50, 3)
         self.font_size_mapping: dict = {}
+
+    def _run(self):
+        self.__random_generate()
+        self.__run_game()
 
     # 随机生成一个数字
     def __random_generate(self):
@@ -65,7 +71,7 @@ class Game2048:
                     pos.append((row, col))
 
         row, col = random.choice(pos)
-        self.nums[row][col] = random.choice(CANDIDATE_NUMS)
+        self.nums[row][col] = random.choice(self.config["CANDIDATE_NUMS"])
 
     @staticmethod
     # 列表转置
@@ -137,9 +143,9 @@ class Game2048:
     def __draw_board(self):
         for row, line in enumerate(self.nums):
             for col, _ in enumerate(line):
-                x = MARGIN_SIZE * (col + 1) + BLOCK_SIZE * col
-                y = MARGIN_SIZE * (row + 1) + BLOCK_SIZE * row
-                pygame.draw.rect(self.screen, self.block_color, (x, y, BLOCK_SIZE, BLOCK_SIZE))
+                x = self.margin_size * (col + 1) + self.block_size * col
+                y = self.margin_size * (row + 1) + self.block_size * row
+                pygame.draw.rect(self.screen, self.block_color, (x, y, self.block_size, self.block_size))
 
     def __draw_num(self):
         for row, line in enumerate(self.nums):
@@ -147,22 +153,21 @@ class Game2048:
                 if num == 0:
                     continue
 
-                x = MARGIN_SIZE * (col + 1) + BLOCK_SIZE * col
-                y = MARGIN_SIZE * (row + 1) + BLOCK_SIZE * row
+                x = self.margin_size * (col + 1) + self.block_size * col
+                y = self.margin_size * (row + 1) + self.block_size * row
 
                 content = str(num)
                 if content not in self.font_size_mapping:
-                    self.font_size_mapping[content] = get_font_adaptive(content, BLOCK_SIZE, BLOCK_SIZE)
+                    self.font_size_mapping[content] = get_font_adaptive(content, self.block_size, self.block_size)
                 font = self.font_size_mapping[content]
                 text = font.render(content, True, NUM_COLOR_MAPPING[num])
                 text_rect = text.get_rect()
-                text_rect.center = (x + BLOCK_SIZE // 2, y + BLOCK_SIZE // 2)
+                text_rect.center = (x + self.block_size // 2, y + self.block_size // 2)
                 self.screen.blit(text, text_rect)
 
     def __draw_score(self):
         texts = (
             ("按上下左右方向键", "microsoftyahei", self.text_color),
-            ("或者wsad键开始游戏", "microsoftyahei", self.text_color),
             ("按q键结束游戏", "microsoftyahei", self.text_color),
             (f"score: {self.score}", "timesnewroman", self.score_color),
         )
@@ -171,14 +176,14 @@ class Game2048:
             if content not in self.font_size_mapping:
                 self.font_size_mapping[content] = get_font_adaptive(
                     content,
-                    TEXT_AREA_SIZE,
-                    HEIGHT // (len(texts) + 1),
+                    self.text_area_size,
+                    self.height // (len(texts) + 1),
                     font_name=font_name
                 )
             font = self.font_size_mapping[content]
             text = font.render(content, True, color)
             rect = text.get_rect()
-            rect.center = ((BLOCK_WIDTH + WIDTH) // 2, HEIGHT // (len(texts) + 1) * (idx + 1))
+            rect.center = ((self.block_width + self.width) // 2, self.height // (len(texts) + 1) * (idx + 1))
             self.screen.blit(text, rect)
 
     def __can_move(self) -> bool:
@@ -194,43 +199,41 @@ class Game2048:
 
     def __run_game(self):
         clock = pygame.time.Clock()
-        in_game = True
-        game_over = False
-        while in_game:
-            if game_over:
+        while self.in_game:
+            self.screen.fill(self.bg_color)
+
+            self.__draw_board()
+            self.__draw_num()
+            self.__draw_score()
+
+            if self.game_over:
+                self.shade_down()
                 content = "游戏结束!按q键退出游戏,按r键重新游戏!"
-                font = get_font_adaptive(content, self.width, self.height, font_name="microsoftyahei")
+                font = get_font_adaptive(content, self.width // 10 * 9, self.height, font_name="microsoftyahei")
                 text = font.render(content, True, (255, 0, 0))
                 rect = text.get_rect()
-                rect.center = (WIDTH // 2, HEIGHT // 2)
+                rect.center = (self.width // 2, self.height // 2)
                 self.screen.blit(text, rect)
                 for event in pygame.event.get():
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_q:
-                            in_game = False
+                            self.in_game = False
                         elif event.key == pygame.K_r:
-                            self.run()
+                            self.start()
             else:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
-                        in_game = False
+                        self.in_game = False
                     elif event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_q:
-                            in_game = False
+                            self.in_game = False
                         elif event.key in DIRECTION_MAPPING:
                             self.__move(DIRECTION_MAPPING[event.key])
                             score = self.score
                             # 如果按了方向键且不能移动了，游戏结束
                             if not self.__can_move():
-                                game_over = True
-                                self.shade_down()
+                                self.game_over = True
                             self.score = score
-
-                self.screen.fill(self.bg_color)
-
-                self.__draw_board()
-                self.__draw_num()
-                self.__draw_score()
 
             pygame.display.update()
             clock.tick(60)
@@ -242,10 +245,9 @@ class Game2048:
             self.score_color,
             self.block_color,
         ]:
-            color += 50
+            color += 1
             np.clip(color, 0, 255, out=color)
 
-    def run(self):
-        self._init_state()
-        self.__random_generate()
-        self.__run_game()
+        for num in NUM_COLOR_MAPPING:
+            NUM_COLOR_MAPPING[num] += 1
+            np.clip(NUM_COLOR_MAPPING[num], 0, 255, out=NUM_COLOR_MAPPING[num])
