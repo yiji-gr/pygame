@@ -7,7 +7,7 @@ import numpy as np
 import pygame
 import yaml
 
-from game import Game
+from game_base import Game
 from maze.ball import BallSprite
 from utils import get_font_adaptive, WHITE_BG_COLOR
 

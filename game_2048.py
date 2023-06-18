@@ -5,7 +5,7 @@ import numpy as np
 import pygame
 import yaml
 
-from game import Game
+from game_base import Game
 from utils import get_font_adaptive
 
 os.environ["SDL_VIDEO_CENTERED"] = '1'

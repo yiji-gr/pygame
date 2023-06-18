@@ -5,6 +5,7 @@ import pygame
 
 from game_2048 import Game2048
 from game_maze import GameMaze
+from game_plane import GamePlane
 from utils import exit_program
 
 pygame.init()
@@ -24,7 +25,7 @@ font = pygame.font.SysFont("microsoftyahei", FONT_SIZE)
 games = {
     "迷宫游戏": [GameMaze("config/game_maze.yaml"), ],
     "2048": [Game2048("config/game_2048.yaml"), ],
-    "飞机大战": [None, ],
+    "飞机大战": [GamePlane("config/game_plane.yaml"), ],
     "中国象棋": [None, ],
 }
 
