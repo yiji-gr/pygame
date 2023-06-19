@@ -38,7 +38,7 @@ class GameChess(Game):
 
         self.piece_rect: dict[PIECE, pygame.rect.RectType] = {}
 
-        self.bg_color = np.random.randint(200, 255, 3)
+        self.bg_color = np.random.randint(200, 256, 3)
         self.line_color = np.random.randint(0, 100, 3)
         self.force_color = np.random.randint(0, 100, 3)
         self.tip_color = np.random.randint(100, 200, 3)

@@ -7,6 +7,7 @@ from game_2048 import Game2048
 from game_maze import GameMaze
 from game_plane import GamePlane
 from game_chess import GameChess
+from game_othello import GameOthello
 from utils import exit_program
 
 pygame.init()
@@ -28,6 +29,7 @@ games = {
     "2048": [Game2048("config/game_2048.yaml"), ],
     "飞机大战": [GamePlane("config/game_plane.yaml"), ],
     "中国象棋": [GameChess("config/game_chess.yaml"), ],
+    "黑白棋": [GameOthello("config/game_othello.yaml"), ],
 }
 
 for i, (name, game) in enumerate(games.items()):
@@ -37,11 +39,12 @@ for i, (name, game) in enumerate(games.items()):
 
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("几个小游戏")
+
 while True:
+    pygame.display.set_caption("几个小游戏")
     screen.fill(BG_COLOR)
 
-    for i, (name, (game, (text, rect))) in enumerate(games.items()):
+    for i, (_, (_, (text, rect))) in enumerate(games.items()):
         screen.blit(text, rect)
 
     for event in pygame.event.get():
@@ -62,6 +65,7 @@ while True:
                 if not game:
                     continue
                 if rect.collidepoint(pygame.mouse.get_pos()):
+                    pygame.display.set_caption(name)
                     screen = pygame.display.set_mode((game.width, game.height))
                     screen.get_rect()
                     game.start()

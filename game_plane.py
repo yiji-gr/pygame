@@ -16,7 +16,7 @@ class GamePlane(Game):
         self.bg_img = pygame.transform.scale(self.bg_img, (self.width - self.tip_width, self.height))
 
         self.tip_surface = pygame.Surface((self.tip_width, self.height))
-        self.tip_surface.fill(np.random.randint(200, 255, 3))
+        self.tip_surface.fill(np.random.randint(200, 256, 3))
 
     def _read_cfg(self):
         self.width = self.config["WIDTH"]

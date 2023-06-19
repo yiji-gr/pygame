@@ -18,7 +18,6 @@ class GameMaze(Game):
         super(GameMaze, self).__init__(config_path)
 
         self.screen = pygame.display.set_mode((self.width, self.height))
-        pygame.display.set_caption("迷宫游戏")
 
         self.show_text = True
         self.mouse_pos = (-1, -1)
@@ -45,7 +44,7 @@ class GameMaze(Game):
         self.in_game = True
         self.text_color = np.random.randint(0, 100, 3)
         self.dark_bg_color = np.random.randint(0, 100, 3)
-        self.light_bg_color = np.random.randint(200, 255, 3)
+        self.light_bg_color = np.random.randint(200, 256, 3)
 
     def __handle_base_event(self):
         for event in pygame.event.get():
