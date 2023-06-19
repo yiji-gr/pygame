@@ -118,9 +118,15 @@ class GameOthello(Game):
                     self.player = -self.player
 
     def __is_over(self):
-        cannot_move = len(list(self.__get_valid_pos())) == 0
-        filled = self.piece_num[1] + self.piece_num[-1] == self.row_num * self.col_num
-        if cannot_move or filled:
+        if len(list(self.__get_valid_pos())) == 0:
+            # 如果当前方无法行动，行动权给对方
+            self.player = -self.player
+            # 如果双方均无法行动，游戏结束
+            if len(list(self.__get_valid_pos())) == 0:
+                self.game_over = True
+
+        if self.piece_num[1] + self.piece_num[-1] == self.row_num * self.col_num:
+            # 如果棋盘满了，游戏结束
             self.game_over = True
 
     def __game_over(self):
