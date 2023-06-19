@@ -16,22 +16,27 @@ class GameChess(Game):
 
         self.screen = pygame.display.set_mode((self.width, self.height))
 
-        self.player: str = random.choice(["red", "black"])
-
         self.font_size_mapping: dict[str, pygame.font.FontType] = {}
         self.font_size = 0
 
     def _read_cfg(self):
         self.block_size = self.config["BLOCK_SIZE"]
+        self.tip_width = self.config["TIP_WIDTH"]
         self.tb_margin = self.block_size // 2
         self.lr_margin = self.block_size // 2
-        self.width = self.lr_margin * 2 + self.block_size * 8
+
+        self.width = self.lr_margin * 2 + self.block_size * 8 + self.tip_width
         self.height = self.tb_margin * 2 + self.block_size * 9
 
     def _init_state(self):
-        self.pieces: dict[str, list[PIECE]] = {
-            "red": deepcopy(RED_PIECES),
-            "black": deepcopy(BLACK_PIECES),
+        # 1: red, -1: black
+        self.player: int = random.choice([1, -1])
+        self.player_color = RED if self.player == 1 else BLACK
+        self.winner = None
+
+        self.pieces: dict[int, list[PIECE]] = {
+            1: deepcopy(RED_PIECES),
+            -1: deepcopy(BLACK_PIECES),
         }
 
         self.piece = self.pieces[self.player]
@@ -65,21 +70,30 @@ class GameChess(Game):
 
                 # 鼠标停留在棋子上时，突出棋子
                 cur_piece = self.__is_piece(self.pre_real_pos)
-                if cur_piece:
+                if cur_piece and cur_piece.color == self.player_color:
                     pygame.draw.circle(self.screen, self.force_color, self.__get_real_pos(cur_piece.pos),
                                        self.font_size // 3 * 2, 1)
 
             self.__draw_boards()
             self.__draw_pieces()
+            self.__show_tips()
 
             pygame.display.update()
             clock.tick(60)
 
+    def __show_tips(self):
+        pygame.draw.circle(
+            self.screen,
+            self.player_color,
+            (self.width - (self.lr_margin + self.tip_width) // 2, self.height // 4),
+            self.tip_width // 4
+        )
+
     def __show_game_over(self):
-        content = "游戏结束!"
+        content = f"游戏结束!{self.winner}色方胜利!"
         font = get_font_adaptive(
             content,
-            self.width // 2,
+            self.width // 6 * 5,
             self.height // 2,
             font_name="microsoftyahei",
         )
@@ -137,6 +151,8 @@ class GameChess(Game):
                             if cur_piece:
                                 if cur_piece.name in ("将", "帅"):
                                     self.game_over = True
+                                    self.winner = "红" if cur_piece.name == "将" else "黑"
+
                                 self.piece.remove(cur_piece)
                                 self.piece_rect.pop(cur_piece)
 
@@ -145,15 +161,19 @@ class GameChess(Game):
                             # 取消棋子选中
                             self.clicked_piece = None
 
+                            self.player = -self.player
+                            self.player_color = RED if self.player == 1 else BLACK
+
                 # 没有选中棋子
                 else:
-                    self.clicked_piece = cur_piece
+                    if cur_piece and cur_piece.color == self.player_color:
+                        self.clicked_piece = cur_piece
 
     def __is_piece(self, mouse_pos: tuple[int, int]) -> Optional[PIECE | None]:
         for piece, rect in self.piece_rect.items():
             if rect.collidepoint(mouse_pos):
                 return piece
-        return None
+        return
 
     # 鼠标点击位置对应到棋盘上的索引
     def __get_idx_pos(self, mouse_pos: tuple[int, int]) -> tuple[int, int]:
