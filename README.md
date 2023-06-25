@@ -1,3 +1,3 @@
 # pygame
 
-![](ui.png)
+<img src="ui.png">

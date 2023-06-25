@@ -8,6 +8,7 @@ from game_maze import GameMaze
 from game_plane import GamePlane
 from game_chess import GameChess
 from game_othello import GameOthello
+from game_defense import GameDefense
 from utils import exit_program
 
 pygame.init()
@@ -30,11 +31,12 @@ games = {
     "飞机大战": [GamePlane("config/game_plane.yaml"), ],
     "中国象棋": [GameChess("config/game_chess.yaml"), ],
     "黑白棋": [GameOthello("config/game_othello.yaml"), ],
+    "塔防": [GameDefense("config/game_defense.yaml"), ],
 }
 
-for i, (name, game) in enumerate(games.items()):
+for idx, (name, game) in enumerate(games.items()):
     text = font.render(name, True, FONT_COLOR)
-    rect = text.get_rect(center=(WIDTH // 2, HEIGHT // (len(games) + 1) * (i + 1)))
+    rect = text.get_rect(center=(WIDTH // 4 * (idx % 2 * 2 + 1), HEIGHT // ((len(games) + 1) // 2 + 1) * ((idx + 2) // 2)))
     games[name].append((text, rect))
 
 clock = pygame.time.Clock()

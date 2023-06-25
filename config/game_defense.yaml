@@ -1,0 +1,7 @@
+MARGIN_SIZE: 1
+BLOCK_SIZE: 80
+
+ENEMY:
+  IMG_PATH: resource/tower_defense/enemy.jpg
+HERO:
+  IMG_PATH: resource/tower_defense/hero.jpg
